@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICICI Bank Complaint Analysis: The Case of Krishna Pyari Arora</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: "Subtle Outrage" -->
+    <!-- Application Structure Plan: The SPA is designed as a single-scroll narrative to guide the user through a complex case, making it easy to understand. It starts with a human-centric intro to the victim, moves to an interactive timeline to detail the sequence of events, visualizes the financial damage with charts, contextualizes the issue with systemic bank-wide complaint data, and provides a document repository for evidence. This thematic, chronological flow was chosen over a dashboard layout to tell a compelling story and build a clear argument, making the information accessible to a non-expert audience. Key interactions include timeline clicks, chart hovers, and modal popups for evidence, allowing users to control the depth of information they explore. The new Gemini-powered section adds a layer of utility, allowing users to generate a complaint letter or listen to a summary of the case, transforming the app from a passive report into an active tool. -->
+    <!-- Visualization & Content Choices: 
+        1. Victim Profile (Inform): HTML text block. Justification: To humanize the data and create an emotional connection.
+        2. Timeline (Change/Sequence): HTML/CSS/JS interactive component. Interaction: Click to expand details. Justification: The most intuitive way to explain a chronological sequence of events.
+        3. Financial Impact (Compare/Proportion): Chart.js Doughnut Chart. Interaction: Hover for tooltips. Justification: Visually compelling way to show how penal charges consumed the original FD amount (part-to-whole).
+        4. Bank-wide Complaints (Compare/Trend): Chart.js Bar Chart. Interaction: Hover for details. Justification: Effectively compares the volume and drastic year-over-year increase in complaint categories, demonstrating a potential systemic issue.
+        5. Evidence Locker (Inform): HTML/JS Modals. Interaction: Click to view document excerpts. Justification: Provides direct access to source evidence without cluttering the main narrative. 
+        6. Gemini API Interaction (Inform/Utility): Buttons to trigger complaint drafting and TTS. Interaction: Button click initiates API call and displays generated content in a modal. Justification: Extends the application's purpose from analysis to action and enhances accessibility.
+    -->
+    <!-- Gemini API Integration Plan: This application now includes two features powered by the Gemini API. First, a complaint drafting tool that uses the `gemini-2.5-flash-preview-05-20` model with a structured prompt to create a formal complaint letter. The prompt includes all relevant case details. Second, a text-to-speech (TTS) feature that uses the `gemini-2.5-flash-preview-tts` model to read a summary of the report out loud, enhancing accessibility. This is achieved by converting the returned PCM audio data to a playable WAV format. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F9FAFB;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .timeline-item {
+            border-left: 3px solid #4A5568;
+        }
+        .timeline-dot {
+            position: absolute;
+            left: -11px;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background-color: #F9FAFB;
+            border: 3px solid #4A5568;
+            transition: background-color 0.3s;
+        }
+        .timeline-item.active .timeline-dot {
+            background-color: #C53030;
+            border-color: #C53030;
+        }
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+        #loading-indicator {
+            display: none;
+        }
+        #tts-controls {
+            display: none;
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-20">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-gray-800">ICICI Bank Accountability Report</h1>
+            <div class="flex space-x-4">
+                <a href="#case-overview" class="text-gray-600 hover:text-blue-700">Case Overview</a>
+                <a href="#timeline" class="text-gray-600 hover:text-blue-700">Timeline</a>
+                <a href="#analysis" class="text-gray-600 hover:text-blue-700">Analysis</a>
+                <a href="#evidence" class="text-gray-600 hover:text-blue-700">Evidence</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+        
+        <!-- Section 1: Case Overview -->
+        <section id="case-overview" class="text-center py-12">
+            <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">A Widow's Savings Wiped Out</h2>
+            <p class="max-w-3xl mx-auto text-lg text-gray-600 mb-8">
+                This report analyzes the case of Smt. Krishna Pyari Arora, a deceased 85-year-old, bedridden super senior citizen, whose Fixed Deposit savings were allegedly consumed by ICICI Bank through delayed account closure and the application of exorbitant penal charges, reportedly amounting to an annual interest rate of over 300%.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="text-4xl font-bold text-blue-700">85</div>
+                    <div class="text-gray-600 mt-2">Age of Victim</div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="text-4xl font-bold text-red-700">~300%</div>
+                    <div class="text-gray-600 mt-2">Alleged Annual Penal Rate</div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="text-4xl font-bold text-gray-700">2+ Years</div>
+                    <div class="text-gray-600 mt-2">Delay in Account Closure</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Timeline -->
+        <section id="timeline" class="py-12">
+            <h2 class="text-3xl font-bold text-center mb-10">Timeline of Events</h2>
+            <div class="max-w-4xl mx-auto">
+                <div id="timeline-container" class="relative">
+                </div>
+                <div id="timeline-details" class="mt-8 p-6 bg-white rounded-lg shadow-lg min-h-[150px]">
+                    <h3 id="details-title" class="text-xl font-bold text-blue-800 mb-2"></h3>
+                    <p id="details-content" class="text-gray-700"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Analysis -->
+        <section id="analysis" class="py-12 bg-white rounded-lg shadow-inner">
+             <h2 class="text-3xl font-bold text-center mb-4">Financial & Systemic Analysis</h2>
+             <p class="max-w-3xl mx-auto text-center text-lg text-gray-600 mb-12">
+                The financial impact on the individual was devastating. When viewed alongside the bank's own data, it raises questions about whether this was an isolated error or a symptom of broader systemic issues in customer service and complaint resolution.
+            </p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="text-center">
+                    <h3 class="text-2xl font-semibold mb-4">Impact on Victim's Fixed Deposit</h3>
+                    <div class="chart-container">
+                        <canvas id="financialImpactChart"></canvas>
+                    </div>
+                    <p class="mt-4 text-gray-600">A significant portion of the Fixed Deposit was eroded by penal charges levied on a single day.</p>
+                </div>
+                <div class="text-center">
+                    <h3 class="text-2xl font-semibold mb-4">ICICI Bank Complaints (FY2025 vs FY2024)</h3>
+                     <div class="chart-container h-96 max-h-[500px]">
+                        <canvas id="complaintAnalysisChart"></canvas>
+                    </div>
+                    <p class="mt-4 text-gray-600">The bank's official data reveals a dramatic spike in customer complaints across key areas in Fiscal Year 2025.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Evidence Locker -->
+        <section id="evidence" class="py-12">
+            <h2 class="text-3xl font-bold text-center mb-10">Evidence Locker</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
+                <button data-modal-target="modal-charges" class="bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg shadow hover:bg-blue-700 transition">Penal Charges Statement</button>
+                <button data-modal-target="modal-notice" class="bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg shadow hover:bg-blue-700 transition">Bank's Overdue Notice</button>
+                <button data-modal-target="modal-rbi" class="bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg shadow hover:bg-blue-700 transition">RBI Complaint Reply</button>
+                <button data-modal-target="modal-icici" class="bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg shadow hover:bg-blue-700 transition">ICICI Complaint Status</button>
+            </div>
+        </section>
+
+        <!-- Section 5: AI-Powered Tools -->
+        <section id="ai-tools" class="py-12 bg-gray-200 rounded-lg shadow-inner">
+            <h2 class="text-3xl font-bold text-center mb-6">AI-Powered Actions ✨</h2>
+            <p class="max-w-3xl mx-auto text-center text-gray-700 mb-8">
+                Leverage the power of artificial intelligence to assist with this case. You can generate a draft complaint letter or listen to a summary of the case.
+            </p>
+            <div class="flex flex-col md:flex-row justify-center items-center gap-6">
+                <button id="draftComplaintBtn" class="bg-green-600 text-white font-semibold py-3 px-6 rounded-lg shadow hover:bg-green-700 transition w-full md:w-auto">
+                    Draft Complaint Letter ✨
+                </button>
+                <button id="listenBtn" class="bg-purple-600 text-white font-semibold py-3 px-6 rounded-lg shadow hover:bg-purple-700 transition w-full md:w-auto">
+                    Listen to Summary 🎧
+                </button>
+            </div>
+            <div id="loading-indicator" class="mt-8 text-center">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                <p class="mt-2 text-gray-700">Generating content...</p>
+            </div>
+            <div id="tts-controls" class="mt-8 flex justify-center items-center gap-4">
+                <audio id="ttsAudio" controls class="w-full max-w-xl"></audio>
+            </div>
+        </section>
+        
+    </main>
+
+    <!-- Modals -->
+    <div id="modal-charges" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 opacity-0 pointer-events-none z-30">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full">
+            <h3 class="text-2xl font-bold mb-4">Bank Statement: Penal Charges</h3>
+            <p class="text-gray-700 mb-4">Excerpt from the bank statement for account holder KRISHNA PYARI ARORA, showing three "penal charges" debited on August 17, 2025.</p>
+            <div class="bg-gray-100 p-4 rounded border">
+                <p><strong>Value Date: 17/08/2025</strong> - Transaction Remarks: penal charges - Withdrawal Amount (INR): <strong>741.10</strong></p>
+                <p><strong>Value Date: 17/08/2025</strong> - Transaction Remarks: penal charges - Withdrawal Amount (INR): <strong>4,221.47</strong></p>
+                <p><strong>Value Date: 17/08/2025</strong> - Transaction Remarks: penal charges - Withdrawal Amount (INR): <strong>985.13</strong></p>
+                <hr class="my-2">
+                <p><strong>Total Charges on 17/08/2025: ₹5,947.70</strong></p>
+            </div>
+            <button class="modal-close mt-6 bg-red-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-700">Close</button>
+        </div>
+    </div>
+
+    <div id="modal-notice" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 opacity-0 pointer-events-none z-30">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full">
+            <h3 class="text-2xl font-bold mb-4">Bank's Overdue Notice</h3>
+            <p class="text-gray-700 mb-4">Key text from an email sent by ICICI Bank on November 10, 2023. Note the date of expiry and the required action.</p>
+            <div class="bg-gray-100 p-4 rounded border italic">
+                <p>"...the Fixed Deposit Overdraft (FDOD) facility... was due for renewal and **has expired on Sep 22, 2023.**"</p>
+                <p class="mt-2">"Also, **penal interest is applicable on the overdue amount.**"</p>
+                <p class="mt-2">"**Visit the nearest ICICI Bank Branch** and submit the application for renewal, immediately. If you do not wish to continue with the facility, please pay the total outstanding (if any), along with interest and **close the facility.**"</p>
+            </div>
+             <p class="text-sm text-gray-600 mt-4">This instruction was impractical for an 85-year-old, bedridden customer.</p>
+            <button class="modal-close mt-6 bg-red-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-700">Close</button>
+        </div>
+    </div>
+    
+    <div id="modal-rbi" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 opacity-0 pointer-events-none z-30">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full">
+            <h3 class="text-2xl font-bold mb-4">RBI Ombudsman Reply</h3>
+            <p class="text-gray-700 mb-4">The RBI closed the complaint on procedural grounds, stating the complainant must first approach the bank and wait 30 days. (Dated: 11-08-2025)</p>
+            <div class="bg-gray-100 p-4 rounded border italic">
+                <p>"...it is observed that either you have not filed your complaint first with ICICI BANK LIMITED or the 30-day time limit from the date of lodging the complaint... has not yet expired. Hence, we are constrained to classify your complaint as a 'Non-maintainable complaint' and close the same..."</p>
+            </div>
+            <p class="text-sm text-gray-600 mt-4">This was a procedural closure and not a judgment on the merits of the allegations.</p>
+            <button class="modal-close mt-6 bg-red-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-700">Close</button>
+        </div>
+    </div>
+    
+    <div id="modal-icici" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 opacity-0 pointer-events-none z-30">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full">
+            <h3 class="text-2xl font-bold mb-4">ICICI Bank Internal Complaint Status</h3>
+            <p class="text-gray-700 mb-4">Screenshots from ICICI Bank's portal show complaints were filed and marked as "Closed" by the bank internally prior to the RBI's reply.</p>
+            <div class="bg-gray-100 p-4 rounded border">
+                <p><strong>SR No: SR1059281840</strong> - Description: Waiver of foreclosure charges not executed - Due Date: 29/07/2025 - **Status: Closed**</p>
+                 <p class="mt-2"><strong>SR No: SR1059347657</strong> - Description: Fixed deposit related issues - Due Date: 30/07/2025 - **Status: Closed**</p>
+            </div>
+            <p class="text-sm text-gray-600 mt-4">This indicates that the complainant had approached the bank, but the issues were closed without satisfactory resolution.</p>
+            <button class="modal-close mt-6 bg-red-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-700">Close</button>
+        </div>
+    </div>
+
+    <div id="modal-ai-content" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 opacity-0 pointer-events-none z-30">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-4xl w-full overflow-y-auto max-h-[90vh]">
+            <div id="ai-content-box" class="prose max-w-none"></div>
+            <button class="modal-close mt-6 bg-red-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-700">Close</button>
+        </div>
+    </div>
+
+    <footer class="bg-gray-800 text-white mt-12 py-6">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; 2025 Accountability Report. This is an analysis based on provided documents for informational purposes.</p>
+        </div>
+    </footer>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const draftComplaintBtn = document.getElementById('draftComplaintBtn');
+    const listenBtn = document.getElementById('listenBtn');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const ttsControls = document.getElementById('tts-controls');
+    const ttsAudio = document.getElementById('ttsAudio');
+
+    const complaintSummaryText = `
+        To: [Relevant ICICI Bank Department/Senior Management]
+        Subject: Complaint against ICICI Bank's handling of Fixed Deposit Overdraft for account holder Smt. Krishna Pyari Arora (Age 85)
+
+        Dear Sir/Madam,
+
+        This letter is a formal complaint regarding the alleged misconduct and gross negligence by ICICI Bank concerning the Fixed Deposit Overdraft (FDOD) facility linked to the account of Smt. Krishna Pyari Arora. The facility, which expired on September 22, 2023, was not closed despite the customer's condition as a bedridden super senior citizen and repeated attempts to resolve the matter. The bank's failure to provide a reasonable alternative to a physical branch visit for closure led to a prolonged delay. On August 17, 2025, the bank levied exorbitant penal charges totaling ₹5,947.70, which were applied without a clear prior notice and which have unfairly consumed a significant portion of the customer's savings. This action demonstrates a disregard for the customer's welfare and raises serious questions about the bank's operational practices, particularly its handling of senior citizen accounts.
+
+        Furthermore, internal complaint numbers SR1059281840 and SR1059347657, which were filed to address this issue, were marked as "Closed" by the bank without providing a satisfactory resolution. This, along with the RBI's own data showing a significant spike in customer complaints, suggests that this is not an isolated incident but a potential systemic failure.
+
+        We demand an immediate review of this case, a full reversal of the unjust penal charges, and a satisfactory explanation for the bank's inaction. We also request that the bank outlines a clear, accessible process for account closure for customers who are unable to visit a physical branch.
+
+        Sincerely,
+        [Your Name]
+    `;
+
+    const summaryText = `This report analyzes the case of Smt. Krishna Pyari Arora, an 85-year-old bedridden super senior citizen, whose savings were allegedly consumed by ICICI Bank. The bank's Fixed Deposit Overdraft facility, which expired in September 2023, was not properly closed. Over a two-year period, the bank failed to provide a practical way to close the account for a customer who could not visit a physical branch. This resulted in the application of over 5900 rupees in penal charges in a single day, which consumed a significant portion of the fixed deposit. The report also highlights a systemic issue, as the bank's own data from fiscal year 2025 shows a dramatic spike in customer complaints.`;
+
+    // Function to show/hide loading indicator
+    const setLoading = (isLoading) => {
+        loadingIndicator.style.display = isLoading ? 'block' : 'none';
+        draftComplaintBtn.disabled = isLoading;
+        listenBtn.disabled = isLoading;
+    };
+
+    // Function to convert base64 to ArrayBuffer
+    const base64ToArrayBuffer = (base64) => {
+        const binaryString = window.atob(base64);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        return bytes.buffer;
+    };
+
+    // Function to convert PCM to WAV format
+    const pcmToWav = (pcmData, sampleRate) => {
+        const pcm16 = new Int16Array(pcmData);
+        const dataLength = pcm16.length * 2;
+        const buffer = new ArrayBuffer(44 + dataLength);
+        const view = new DataView(buffer);
+
+        let offset = 0;
+        const writeString = (str) => {
+            for (let i = 0; i < str.length; i++) {
+                view.setUint8(offset++, str.charCodeAt(i));
+            }
+        };
+
+        writeString('RIFF');
+        view.setUint32(offset, 36 + dataLength, true); offset += 4;
+        writeString('WAVE');
+        writeString('fmt ');
+        view.setUint32(offset, 16, true); offset += 4;
+        view.setUint16(offset, 1, true); offset += 2;
+        view.setUint16(offset, 1, true); offset += 2;
+        view.setUint32(offset, sampleRate, true); offset += 4;
+        view.setUint32(offset, sampleRate * 2, true); offset += 4;
+        view.setUint16(offset, 2, true); offset += 2;
+        view.setUint16(offset, 16, true); offset += 2;
+        writeString('data');
+        view.setUint32(offset, dataLength, true); offset += 4;
+        
+        for (let i = 0; i < pcm16.length; i++) {
+            view.setInt16(offset, pcm16[i], true);
+            offset += 2;
+        }
+
+        return new Blob([view], { type: 'audio/wav' });
+    };
+
+    // Draft Complaint AI Logic
+    draftComplaintBtn.addEventListener('click', async () => {
+        setLoading(true);
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${""}`;
+        const userQuery = `Draft a formal complaint letter to ICICI Bank. The complaint is on behalf of the family of Smt. Krishna Pyari Arora, an 85-year-old bedridden senior citizen, now deceased. The core issues are:
+        - A Fixed Deposit Overdraft (FDOD) facility expired on Sep 22, 2023.
+        - The bank failed to provide a viable way for a bedridden senior to close the account, demanding a physical branch visit.
+        - On Aug 17, 2025, the bank levied unjust penal charges totaling ₹5,947.70, consuming the FD.
+        - The bank internally closed prior complaints (SR1059281840, SR1059347657) without satisfactory resolution.
+        - The complaint should be formal, assertive, and demand a full refund of the charges, and a clear explanation for the bank's actions.`;
+
+        const payload = {
+            contents: [{ parts: [{ text: userQuery }] }],
+            tools: [{ "google_search": {} }],
+            systemInstruction: {
+                parts: [{ text: "Act as a professional legal assistant and draft a formal complaint letter based on the provided details." }]
+            },
+        };
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+            const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || 'Failed to generate complaint.';
+            
+            const aiContentBox = document.getElementById('ai-content-box');
+            aiContentBox.innerHTML = `
+                <h3 class="text-2xl font-bold mb-4">Drafted Complaint Letter</h3>
+                <pre class="whitespace-pre-wrap p-4 bg-gray-100 rounded-lg text-sm">${text}</pre>
+            `;
+            const modal = document.getElementById('modal-ai-content');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+        } catch (error) {
+            const aiContentBox = document.getElementById('ai-content-box');
+            aiContentBox.innerHTML = `<p class="text-red-600">Error: Failed to generate complaint. Please try again later.</p>`;
+            const modal = document.getElementById('modal-ai-content');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+        } finally {
+            setLoading(false);
+        }
+    });
+
+    // TTS AI Logic
+    listenBtn.addEventListener('click', async () => {
+        setLoading(true);
+        ttsControls.style.display = 'none';
+
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${""}`;
+        const payload = {
+            contents: [{
+                parts: [{ text: summaryText }]
+            }],
+            generationConfig: {
+                responseModalities: ["AUDIO"],
+                speechConfig: {
+                    voiceConfig: {
+                        prebuiltVoiceConfig: { voiceName: "Charon" }
+                    }
+                }
+            },
+            model: "gemini-2.5-flash-preview-tts"
+        };
+        
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+            
+            const part = result?.candidates?.[0]?.content?.parts?.[0];
+            const audioData = part?.inlineData?.data;
+            const mimeType = part?.inlineData?.mimeType;
+
+            if (audioData && mimeType) {
+                const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
+                const pcmData = base64ToArrayBuffer(audioData);
+                const wavBlob = pcmToWav(pcmData, sampleRate);
+                const audioUrl = URL.createObjectURL(wavBlob);
+                ttsAudio.src = audioUrl;
+                ttsControls.style.display = 'flex';
+                ttsAudio.play();
+            } else {
+                alert('Failed to generate audio. Please try again.');
+            }
+        } catch (error) {
+            alert('Error generating audio: ' + error.message);
+        } finally {
+            setLoading(false);
+        }
+    });
+
+    // Timeline Data
+    const timelineData = [
+        { 
+            date: "Sep 22, 2023", 
+            title: "FD Overdraft Facility Expires",
+            content: "The Fixed Deposit Overdraft (FDOD) facility linked to the account of Smt. Krishna Pyari Arora officially expires. The account should have been settled or renewed at this point."
+        },
+        { 
+            date: "Nov 10, 2023",
+            title: "Bank Sends Overdue Notice",
+            content: "ICICI Bank sends a system-generated email acknowledging the facility has expired and stating that penal interest is applicable. The email instructs the customer to 'Visit the nearest branch' for closure or renewal—an impractical demand for an 85-year-old, bedridden widow."
+        },
+        { 
+            date: "July 2025", 
+            title: "Complaints Filed with ICICI Bank",
+            content: "After inaction from the bank, the customer's representative files formal complaints regarding 'waiver of foreclosure charges' and 'fixed deposit related issues'. The bank assigns service request numbers SR1059281840 and SR1059347657."
+        },
+        { 
+            date: "July 30, 2025",
+            title: "ICICI Bank Closes Complaints",
+            content: "Within days of filing, ICICI Bank internally marks both service requests as 'Closed' on their system, apparently without providing a satisfactory resolution to the customer."
+        },
+        { 
+            date: "Aug 11, 2025", 
+            title: "Complaint Filed with RBI",
+            content: "Frustrated with the lack of resolution, a complaint is filed with the Reserve Bank of India's Ombudsman scheme, detailing the delays and unfair charges."
+        },
+        { 
+            date: "Aug 17, 2025", 
+            title: "Exorbitant Penal Charges Levied",
+            content: "ICICI Bank debits a total of ₹5,947.70 in 'penal charges' from the account in a single day. This action significantly depletes the customer's savings."
+        },
+        { 
+            date: "Aug/Sep 2025", 
+            title: "RBI Rejects Complaint Procedurally",
+            content: "The RBI's processing center closes the complaint, stating it is 'non-maintainable' because the complainant had not waited 30 days after complaining to the bank before approaching them. This closure was based on procedure, not the merits of the case."
+        }
+    ];
+
+    const timelineContainer = document.getElementById('timeline-container');
+    const detailsTitle = document.getElementById('details-title');
+    const detailsContent = document.getElementById('details-content');
+
+    timelineData.forEach((item, index) => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'timeline-item relative pl-8 pb-8';
+        itemEl.innerHTML = `
+            <div class="timeline-dot"></div>
+            <div class="cursor-pointer">
+                <p class="text-sm text-gray-500">${item.date}</p>
+                <h4 class="font-semibold text-lg">${item.title}</h4>
+            </div>
+        `;
+        itemEl.addEventListener('click', () => {
+            document.querySelectorAll('.timeline-item').forEach(el => el.classList.remove('active'));
+            itemEl.classList.add('active');
+            detailsTitle.textContent = item.title;
+            detailsContent.textContent = item.content;
+        });
+        timelineContainer.appendChild(itemEl);
+    });
+
+    if (timelineData.length > 0) {
+        document.querySelector('.timeline-item').classList.add('active');
+        detailsTitle.textContent = timelineData[0].title;
+        detailsContent.textContent = timelineData[0].content;
+    }
+
+    const financialCtx = document.getElementById('financialImpactChart').getContext('2d');
+    new Chart(financialCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Remaining FD Value', 'Penal Charges (Aug 17)'],
+            datasets: [{
+                data: [99000, 5947.70],
+                backgroundColor: ['#3B82F6', '#EF4444'],
+                borderColor: ['#FFFFFF'],
+                borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed !== null) {
+                                label += new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(context.parsed);
+                            }
+                            return label;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    const complaintCtx = document.getElementById('complaintAnalysisChart').getContext('2d');
+    new Chart(complaintCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Credit Cards', 'Internet Banking', 'ATM/Debit Cards', 'Loans/Advances', 'Account Ops.'],
+            datasets: [
+                {
+                    label: 'Complaints FY2024',
+                    data: [129689, 81306, 71158, 11424, 9879], 
+                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Complaints FY2025',
+                    data: [180008, 101389, 89517, 30262, 35774],
+                    backgroundColor: 'rgba(239, 68, 68, 0.5)',
+                    borderColor: 'rgba(239, 68, 68, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value / 1000 + 'k';
+                        }
+                    }
+                },
+                y: {
+                    ticks: {
+                       autoSkip: false
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.x !== null) {
+                                label += new Intl.NumberFormat('en-IN').format(context.parsed.x);
+                            }
+                            return label;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    const modalTriggers = document.querySelectorAll('[data-modal-target]');
+    const modalCloses = document.querySelectorAll('.modal-close');
+
+    modalTriggers.forEach(button => {
+        button.addEventListener('click', () => {
+            const modalId = button.getAttribute('data-modal-target');
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+        });
+    });
+
+    modalCloses.forEach(button => {
+        button.addEventListener('click', () => {
+            const modal = button.closest('.modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        });
+    });
+    
+    window.addEventListener('click', (event) => {
+        if(event.target.classList.contains('modal')){
+            event.target.classList.add('opacity-0', 'pointer-events-none');
+        }
+    });
+});
+</script>
+</body>
+</html>
