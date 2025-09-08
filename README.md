@@ -1,0 +1,2 @@
+# IC
+ interactive report to analyze a complaint against ICICI Bank which mugged up FD deposits of a deceased super senior citizen single widow lady aging 85 bedridden ignoring her request of closing OD account. It includes charts and AI tools to draft a complaint letter. Check it out to learn &amp; help senior citizens etc. for financial advocacy
